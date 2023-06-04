@@ -4,7 +4,7 @@ class __declspec(novtable) SimpWndClsNoRefImpl
 {
 	LONG _M_dwMessageCount;
 
-	static LRESULT CALLBACK __DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static INT_PTR CALLBACK __DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static INT_PTR CALLBACK _DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{

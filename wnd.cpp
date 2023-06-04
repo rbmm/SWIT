@@ -17,7 +17,7 @@ LRESULT SimpWndClsNoRefImpl::wDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 	return lParam;
 }
 
-LRESULT CALLBACK SimpWndClsNoRefImpl::__DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK SimpWndClsNoRefImpl::__DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_INITDIALOG)
 	{
@@ -30,7 +30,7 @@ LRESULT CALLBACK SimpWndClsNoRefImpl::__DialogProc(HWND hwndDlg, UINT uMsg, WPAR
 	return 0;
 }
 
-LRESULT SimpWndClsNoRefImpl::DialogProc(HWND /*hwndDlg*/, UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/)
+INT_PTR SimpWndClsNoRefImpl::DialogProc(HWND /*hwndDlg*/, UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
 	switch (uMsg)
 	{
