@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "UiContext.h"
-#include "wnd.h"
 #include "resource.h"
 
 BOOL MoveWndTo(HWND hwnd, int x, int y)
@@ -8,18 +7,22 @@ BOOL MoveWndTo(HWND hwnd, int x, int y)
 	return SetWindowPos(hwnd, 0, x, y, 0, 0, SWP_NOREDRAW|SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
 }
 
-class QrWnd : public SimpWndCls, public SubClsWnd
+class QrWnd : public CDialogImpl<QrWnd>, public SubClsWnd
 {
 	HCURSOR _M_hc = 0;
 	HWND _M_hwnd = 0, _M_myHwnd = 0;
 	PPOINT _M_ppt;
 	int _M_x = 0, _M_y = 0;
 
+public:
+	int IDD = IDD_DIALOG1;
+private:
+
 	void OnDestroy(HWND hwnd)
 	{
 		if (_M_hc) DestroyCursor(_M_hc);
 		RECT rc;
-		if (GetWindowRect(hwnd, &rc))
+		if (::GetWindowRect(hwnd, &rc))
 		{
 			_M_ppt->x = rc.left;
 			_M_ppt->y = rc.top;
@@ -28,25 +31,38 @@ class QrWnd : public SimpWndCls, public SubClsWnd
 		RemoveSubclass();
 	}
 
-	virtual INT_PTR DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	virtual void OnFinalMessage(_In_ HWND /*hWnd*/)
+	{
+		delete this;
+	}
+
+	virtual BOOL ProcessWindowMessage(
+		_In_ HWND hwndDlg,
+		_In_ UINT uMsg,
+		_In_ WPARAM /*wParam*/,
+		_In_ LPARAM lParam,
+		_Inout_ LRESULT& lResult,
+		_In_ DWORD /*dwMsgMapID*/)
 	{
 		switch (uMsg)
 		{
 		case WM_NCHITTEST:
-			SetWindowLongPtrW(hwndDlg, DWLP_MSGRESULT, HTCAPTION);
+			lResult = HTCAPTION;
 			return TRUE;
 
 		case WM_SETCURSOR:
 			SetCursor(_M_hc);
+			lResult = TRUE;
 			return TRUE;
 
 		case WM_INITDIALOG:
+			*(BOOL*)lParam = TRUE;
 			_M_myHwnd = hwndDlg;
 			_M_hc = LoadCursor(0, IDC_SIZEALL);
 			break;
 
 		case WM_CLOSE:
-			DestroyWindow(hwndDlg);
+			::DestroyWindow(hwndDlg);
 			break;
 
 		case WM_NCDESTROY:
@@ -54,7 +70,7 @@ class QrWnd : public SimpWndCls, public SubClsWnd
 			break;
 		}
 
-		return __super::DialogProc(hwndDlg, uMsg, wParam, lParam);
+		return FALSE;
 	}
 
 	virtual LRESULT CALLBACK MySubclassProc(HWND hWnd,
@@ -96,7 +112,7 @@ public:
 		if (SubClsWnd::SetSubclass(hwnd, (UINT_PTR)&_M_myHwnd))
 		{
 			RECT rc;
-			if (GetWindowRect(hwnd, &rc))
+			if (::GetWindowRect(hwnd, &rc))
 			{
 				_M_x = rc.left, _M_y = rc.top;
 			}
@@ -124,29 +140,33 @@ public:
 	{
 	}
 };
-
+ 
 class qr_ctx : public window_context
 {
 	PPOINT _M_ppt;
 
 	virtual PVOID execute(_In_ HWND hwnd)
 	{
-		HWND hwndMy = 0;
-
 		if (QrWnd* p = new QrWnd(_M_ppt))
 		{
-			if (hwndMy = p->Create(MAKEINTRESOURCEW(IDD_DIALOG1), hwnd))
+			BOOL bCalled = FALSE;
+
+			if (HWND hwndMy = p->Create(HWND_DESKTOP, (LPARAM)&bCalled))
 			{
 				if (0 <= _M_ppt->x && 0 <= _M_ppt->y)
 				{
 					MoveWndTo(hwndMy, _M_ppt->x, _M_ppt->y);
 				}
+
 				p->SetSubclass(hwnd);
+
+				return hwndMy;
 			}
-			p->Release();
+
+			if (!bCalled) delete this;
 		}
 
-		return hwndMy;
+		return 0;
 	}
 public:
 	qr_ctx(PPOINT ppt) : _M_ppt(ppt)
@@ -167,12 +187,16 @@ HWND GetMainWnd(ULONG dwThreadId)
 	return gti.hwndActive;
 }
 
-class ProvDlg : public SimpWndCls
+class ProvDlg : public CDialogImpl<ProvDlg>
 {
 	HWND _M_hwndMain = 0;
 	HWND _M_hwndQR = 0;
 	POINT _M_pt = { CW_USEDEFAULT, CW_USEDEFAULT };
 	
+public:
+	int IDD = IDD_DIALOG2;
+private:
+
 	HWND ShowQr()
 	{
 		qr_ctx ctx(&_M_pt);
@@ -183,7 +207,7 @@ class ProvDlg : public SimpWndCls
 	{
 		if (HWND hwndQR = _M_hwndQR)
 		{
-			SendMessageW(hwndQR, WM_CLOSE, 0, 0);
+			::SendMessageW(hwndQR, WM_CLOSE, 0, 0);
 			SetState(hwndDlg, 0);
 		}
 	}
@@ -191,17 +215,17 @@ class ProvDlg : public SimpWndCls
 	void SetState(HWND hwndDlg, HWND hwndQR)
 	{
 		_M_hwndQR = hwndQR;
-		EnableWindow(GetDlgItem(hwndDlg, IDOK), hwndQR == 0);
-		EnableWindow(GetDlgItem(hwndDlg, IDCANCEL), hwndQR != 0);
+		::EnableWindow(::GetDlgItem(hwndDlg, IDOK), hwndQR == 0);
+		::EnableWindow(::GetDlgItem(hwndDlg, IDCANCEL), hwndQR != 0);
 	}
 
 	void InitPos(HWND hwndDlg)
 	{
 		RECT rc;
-		if (GetWindowRect(hwndDlg, &rc))
+		if (::GetWindowRect(hwndDlg, &rc))
 		{
 			ULONG dx = rc.right - rc.left;
-			if (GetWindowRect(_M_hwndMain, &rc))
+			if (::GetWindowRect(_M_hwndMain, &rc))
 			{
 				MoveWndTo(hwndDlg, rc.left - dx, rc.top);
 				_M_pt.x = rc.right;
@@ -210,8 +234,16 @@ class ProvDlg : public SimpWndCls
 		}
 	}
 
-	virtual INT_PTR DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	virtual BOOL ProcessWindowMessage(
+		_In_ HWND hwndDlg,
+		_In_ UINT uMsg,
+		_In_ WPARAM wParam,
+		_In_ LPARAM /*lParam*/,
+		_Inout_ LRESULT& lResult,
+		_In_ DWORD /*dwMsgMapID*/)
 	{
+		lResult = FALSE;
+
 		switch (uMsg)
 		{
 		case WM_INITDIALOG:
@@ -221,7 +253,7 @@ __ok:
 			break;
 
 		case WM_CLOSE:
-			DestroyWindow(hwndDlg);
+			::DestroyWindow(hwndDlg);
 			break;
 
 		case WM_NCDESTROY:
@@ -240,8 +272,9 @@ __cancel:
 			break;
 		}
 
-		return __super::DialogProc(hwndDlg, uMsg, wParam, lParam);
+		return FALSE;
 	}
+
 public:
 
 	BOOL Init(ULONG dwThreadId)
@@ -263,21 +296,45 @@ ULONG ProviderThread(PVOID dwThreadId)
 
 	if (dlg.Init((ULONG)(ULONG_PTR)dwThreadId))
 	{
-		dlg.Modal(MAKEINTRESOURCEW(IDD_DIALOG2));
+		dlg.DoModal(HWND_DESKTOP);
 	}
 
 	return 0;
 }
 
+#include "../inc/initterm.h"
+
 void WINAPI ep(HANDLE hThread)
 {
+	initterm();
+
 	ULONG dwThreadId;
 	if (hThread = CreateThread(0, 0, ProviderThread, (PVOID)(ULONG_PTR)GetCurrentThreadId(), 0, &dwThreadId))
 	{
 		MessageBox(0, 0, L"MainWnd", MB_ICONINFORMATION);
 		PostThreadMessageW(dwThreadId, WM_QUIT, 0, 0);
-		WaitForSingleObject(hThread, INFINITE);
+		
+__loop:
+		switch (MsgWaitForMultipleObjectsEx(1, &hThread, INFINITE, QS_ALLINPUT, MWMO_INPUTAVAILABLE))
+		{
+		case WAIT_OBJECT_0:
+			break;
+		case WAIT_OBJECT_0 + 1:
+			MSG msg;
+			while (PeekMessageW(&msg, 0, 0, 0, PM_REMOVE))
+			{
+				DispatchMessageW(&msg);
+			}
+			goto __loop;
+		default:
+			__debugbreak();
+		}
+		
 		CloseHandle(hThread);
 	}
+
+	destroyterm();
+
 	ExitProcess(0);
 }
+

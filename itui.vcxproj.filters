@@ -24,9 +24,6 @@
     <ClCompile Include="UiContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wnd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="regedit.ico">
@@ -41,9 +38,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UiContext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
