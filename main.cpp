@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "resource.h"
-
-PVOID invoke_in_ui(_In_ HWND hwnd, PVOID (WINAPI *cb)(HWND hwnd, PVOID Parameter), _In_ PVOID Parameter);
+#include "UiContext.h"
 
 BOOL MoveWndTo(HWND hwnd, int x, int y)
 {
