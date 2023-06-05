@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "UiContext.h"
+#include "Subclass.h"
 #include "resource.h"
 
 BOOL MoveWndTo(HWND hwnd, int x, int y)
@@ -10,13 +11,9 @@ BOOL MoveWndTo(HWND hwnd, int x, int y)
 class QrWnd : public CDialogImpl<QrWnd>, public SubClsWnd
 {
 	HCURSOR _M_hc = 0;
-	HWND _M_hwnd = 0, _M_myHwnd = 0;
+	HWND _M_hwnd = 0;
 	PPOINT _M_ppt;
 	int _M_x = 0, _M_y = 0;
-
-public:
-	int IDD = IDD_DIALOG1;
-private:
 
 	void OnDestroy(HWND hwnd)
 	{
@@ -57,7 +54,6 @@ private:
 
 		case WM_INITDIALOG:
 			*(BOOL*)lParam = TRUE;
-			_M_myHwnd = hwndDlg;
 			_M_hc = LoadCursor(0, IDC_SIZEALL);
 			break;
 
@@ -80,7 +76,7 @@ private:
 		UINT_PTR uIdSubclass
 		)
 	{
-		if (uIdSubclass != (UINT_PTR)&_M_myHwnd)
+		if (uIdSubclass != (UINT_PTR)&m_hWnd)
 		{
 			__debugbreak();
 		}
@@ -97,7 +93,7 @@ private:
 			if (x != _M_x || y != _M_y)
 			{
 				_M_y = y, _M_x = x;
-				MoveWndTo(_M_myHwnd, x + reinterpret_cast<WINDOWPOS*>(lParam)->cx, y);
+				MoveWndTo(m_hWnd, x + reinterpret_cast<WINDOWPOS*>(lParam)->cx, y);
 			}
 			break;
 		}
@@ -106,10 +102,11 @@ private:
 	}
 
 public:
+	enum { IDD = IDD_DIALOG1 };
 
 	BOOL SetSubclass(_In_ HWND hwnd)
 	{
-		if (SubClsWnd::SetSubclass(hwnd, (UINT_PTR)&_M_myHwnd))
+		if (SubClsWnd::SetSubclass(hwnd, (UINT_PTR)&m_hWnd))
 		{
 			RECT rc;
 			if (::GetWindowRect(hwnd, &rc))
@@ -126,7 +123,7 @@ public:
 	{
 		if (_M_hwnd)
 		{
-			if (SubClsWnd::RemoveSubclass(_M_hwnd, (UINT_PTR)&_M_myHwnd))
+			if (SubClsWnd::RemoveSubclass(_M_hwnd, (UINT_PTR)&m_hWnd))
 			{
 				_M_hwnd = 0;
 				return TRUE;
@@ -193,10 +190,6 @@ class ProvDlg : public CDialogImpl<ProvDlg>
 	HWND _M_hwndQR = 0;
 	POINT _M_pt = { CW_USEDEFAULT, CW_USEDEFAULT };
 	
-public:
-	int IDD = IDD_DIALOG2;
-private:
-
 	HWND ShowQr()
 	{
 		qr_ctx ctx(&_M_pt);
@@ -276,6 +269,7 @@ __cancel:
 	}
 
 public:
+	enum { IDD = IDD_DIALOG2 };
 
 	BOOL Init(ULONG dwThreadId)
 	{
@@ -337,4 +331,3 @@ __loop:
 
 	ExitProcess(0);
 }
-
