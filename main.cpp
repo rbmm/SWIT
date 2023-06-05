@@ -1,45 +1,15 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "UiContext.h"
+#include "Subclass.h"
 
 BOOL MoveWndTo(HWND hwnd, int x, int y)
 {
 	return SetWindowPos(hwnd, 0, x, y, 0, 0, SWP_NOREDRAW|SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
 }
 
-class QrWnd : public CDialogImpl<QrWnd>
+class QrWnd : public CDialogImpl<QrWnd>, public SubClsWnd
 {
-	class CSubWnd : public CWindowImplBaseT<>
-	{
-		void OnPosChanged(WINDOWPOS* pwp)
-		{
-			CONTAINING_RECORD(this, QrWnd, _M_subWnd)->OnPosChanged(pwp->x, pwp->y, pwp->cx);
-		}
-
-		virtual BOOL ProcessWindowMessage(
-			_In_ HWND /*hwnd*/,
-			_In_ UINT uMsg,
-			_In_ WPARAM /*wParam*/,
-			_In_ LPARAM lParam,
-			_Inout_ LRESULT& /*lResult*/,
-			_In_ DWORD /*dwMsgMapID*/)
-		{
-			switch (uMsg)
-			{
-			case WM_NCDESTROY:
-				UnsubclassWindow(TRUE);
-				break;
-
-			case WM_WINDOWPOSCHANGED:
-				OnPosChanged(reinterpret_cast<WINDOWPOS*>(lParam));
-				break;
-			}
-
-			return FALSE;
-		}
-	};
-
-	CSubWnd _M_subWnd;
 	HCURSOR _M_hc = 0;
 	HWND _M_hwnd = 0;
 	PPOINT _M_ppt;
@@ -55,7 +25,7 @@ class QrWnd : public CDialogImpl<QrWnd>
 			_M_ppt->y = rc.top;
 		}
 
-		_M_subWnd.UnsubclassWindow();
+		RemoveSubclass();;
 	}
 
 	virtual void OnFinalMessage(_In_ HWND /*hWnd*/)
@@ -108,19 +78,67 @@ class QrWnd : public CDialogImpl<QrWnd>
 		return FALSE;
 	}
 
+	virtual LRESULT CALLBACK MySubclassProc(HWND hWnd,
+		UINT uMsg,
+		WPARAM wParam,
+		LPARAM lParam,
+		UINT_PTR uIdSubclass
+		)
+	{
+		if (uIdSubclass != (UINT_PTR)&m_hWnd)
+		{
+			__debugbreak();
+		}
+
+		switch (uMsg)
+		{
+		case WM_NCDESTROY:
+			RemoveSubclass();
+			break;
+
+		case WM_WINDOWPOSCHANGED:
+			int x = reinterpret_cast<WINDOWPOS*>(lParam)->x, y = reinterpret_cast<WINDOWPOS*>(lParam)->y;
+
+			if (x != _M_x || y != _M_y)
+			{
+				_M_y = y, _M_x = x;
+				MoveWndTo(m_hWnd, x + reinterpret_cast<WINDOWPOS*>(lParam)->cx, y);
+			}
+			break;
+		}
+
+		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+	}
+
 public:
 	enum { IDD = IDD_DIALOG1 };
 
 	BOOL SetSubclass(_In_ HWND hwnd)
 	{
-		RECT rc;
-		if (::GetWindowRect(hwnd, &rc))
+		if (SubClsWnd::SetSubclass(hwnd, (UINT_PTR)&m_hWnd))
 		{
-			_M_x = rc.left, _M_y = rc.top;
-			
-			return _M_subWnd.SubclassWindow(hwnd);
+			RECT rc;
+			if (::GetWindowRect(hwnd, &rc))
+			{
+				_M_x = rc.left, _M_y = rc.top;
+			}
+			_M_hwnd = hwnd;
+			return TRUE;
 		}
+		return FALSE;
+	}
 
+	BOOL RemoveSubclass()
+	{
+		if (_M_hwnd)
+		{
+			if (SubClsWnd::RemoveSubclass(_M_hwnd, (UINT_PTR)&m_hWnd))
+			{
+				_M_hwnd = 0;
+				return TRUE;
+			}
+			__debugbreak();
+		}
 		return FALSE;
 	}
 
