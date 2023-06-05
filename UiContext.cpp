@@ -1,34 +1,23 @@
 #include "stdafx.h"
 
-#include "UiContext.h"
-
-struct WindowCallData 
-{
-	_In_ window_context* pItf;
-	_Out_ PVOID result;
-};
-
-EXTERN_C extern IMAGE_DOS_HEADER __ImageBase;
-
-#define MAGIC_WPARAM ((WPARAM)&__ImageBase)
-
-LRESULT CALLBACK window_context::CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	// doc error: https://learn.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms644975(v=vs.85)
 
 	if (nCode == HC_ACTION && 
 		wParam && // If the message was sent by the current thread, it is zero; otherwise, it is nonzero.
-		reinterpret_cast<PCWPSTRUCT>(lParam)->message == WM_NULL &&
-		reinterpret_cast<PCWPSTRUCT>(lParam)->wParam == MAGIC_WPARAM) 
+		reinterpret_cast<PCWPSTRUCT>(lParam)->message == WM_NULL) 
 	{
-		WindowCallData* pCallData = reinterpret_cast<WindowCallData*>(reinterpret_cast<PCWPSTRUCT>(lParam)->lParam);
-		pCallData->result = pCallData->pItf->execute(reinterpret_cast<PCWPSTRUCT>(lParam)->hwnd);
+		void** ppv = (void**)reinterpret_cast<PCWPSTRUCT>(lParam)->lParam;
+		
+		*ppv = reinterpret_cast<PVOID (WINAPI*)(HWND , PVOID)>(reinterpret_cast<PCWPSTRUCT>(lParam)->wParam)(
+			reinterpret_cast<PCWPSTRUCT>(lParam)->hwnd,	*ppv);
 	}
 
 	return CallNextHookEx(0, nCode, wParam, lParam);
 }
 
-PVOID window_context::invoke(_In_ HWND hwnd)
+PVOID invoke_in_ui(_In_ HWND hwnd, PVOID (WINAPI *cb)(HWND hwnd, PVOID Parameter), _In_ PVOID Parameter)
 {
 	ULONG dwProcessId;
 
@@ -38,15 +27,14 @@ PVOID window_context::invoke(_In_ HWND hwnd)
 		{
 			if (dwThreadId == GetCurrentThreadId())
 			{
-				return execute(hwnd);
+				return cb(hwnd, Parameter);
 			}
 
 			if (HHOOK hhk = SetWindowsHookExW(WH_CALLWNDPROC, CallWndProc, (HMODULE)&__ImageBase, dwThreadId))
 			{
-				WindowCallData calldata { this };
-				SendMessageW(hwnd, WM_NULL, MAGIC_WPARAM, (LPARAM)&calldata);
+				SendMessageW(hwnd, WM_NULL, (WPARAM)cb, (LPARAM)&Parameter);
 				UnhookWindowsHookEx(hhk);
-				return calldata.result;
+				return Parameter;
 			}
 		}
 	}
