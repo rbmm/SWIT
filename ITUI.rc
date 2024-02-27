@@ -7,10 +7,16 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "winres.h"
-
+#include "winres.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -30,21 +36,11 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
-    "#include "".rc2\0"
+    "#include "".rc2""\0"
 END
 
 #endif    // APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -56,16 +52,23 @@ STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_SYSMENU
 EXSTYLE WS_EX_TOPMOST
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    ICON            1,IDC_STATIC,7,7,21,20,SS_CENTERIMAGE
+    ICON            IDOK,IDC_STATIC,7,7,21,20,SS_CENTERIMAGE
 END
 
-IDD_DIALOG2 DIALOGEX 0, 0, 64, 46
+IDD_DIALOG2 DIALOGEX 0, 0, 65, 46
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Show",IDOK,7,7,50,14,WS_DISABLED
-    PUSHBUTTON      "Hide",IDCANCEL,7,24,50,14,WS_DISABLED
+    DEFPUSHBUTTON   "Show",IDOK,7,7,51,14,WS_DISABLED
+    PUSHBUTTON      "Hide",IDCANCEL,7,24,51,14,WS_DISABLED
+END
+
+IDD_DIALOG3 DIALOGEX 0, 0, 186, 92
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Windows sign-in"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
 END
 
 
@@ -75,27 +78,51 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_DIALOG1, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 33
+        RIGHTMARGIN, 28
         TOPMARGIN, 7
-        BOTTOMMARGIN, 33
+        BOTTOMMARGIN, 27
     END
 
     IDD_DIALOG2, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 57
+        RIGHTMARGIN, 58
         TOPMARGIN, 7
         BOTTOMMARGIN, 39
+    END
+
+    IDD_DIALOG3, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 85
     END
 END
 #endif    // APSTUDIO_INVOKED
 
-#endif    // English (U.S.) resources
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_DIALOG1 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG2 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

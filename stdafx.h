@@ -20,7 +20,4 @@
 #include <CommCtrl.h>
 #include <windowsx.h>
 
-#include <atlbase.h>
-#include <atlwin.h>
-
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
