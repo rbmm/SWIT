@@ -260,8 +260,6 @@ ULONG WINAPI WorkTp(PVOID hwnd)
 {
 	ProvDlg dlg((HWND)hwnd);
 
-	dlg.AddRef();
-
 	return (ULONG)dlg.DoModal(MAKEINTRESOURCEW(ProvDlg::IDD));
 }
 

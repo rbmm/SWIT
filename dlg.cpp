@@ -24,6 +24,7 @@ INT_PTR CALLBACK CDlgBase::StaticDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		case WM_INITDIALOG:
 			if (This = lParam)
 			{
+				reinterpret_cast<CDlgBase*>(This)->AddRef();
 				break;
 			}
 		default:
